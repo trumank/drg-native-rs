@@ -1,15 +1,3 @@
-//#![no_std]
-
-// // https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features?view=msvc-160
-// #[link(name = "ucrt")]
-// extern {}
-
-//#[link(name = "msvcrt")]
-//extern "C" {}
-
-//#[link(name = "vcruntime")]
-//extern "C" {}
-
 use common::{self, win};
 use core::ffi::c_void;
 use core::ptr;
@@ -279,4 +267,3 @@ unsafe fn find_get_preferred_unique_net_id(module: &win::Module) -> Result<(), E
         .ok_or(Error::FindGetPreferredUniqueNetId)?;
     Ok(())
 }
-

@@ -100,7 +100,10 @@ impl Variant {
             .filter(|attribute| matches!(attribute.stream().into_iter().next(), Some(TokenTree::Ident(ident)) if ident.to_string() == "from"))
             .is_some();
 
-        assert!(has_from_attribute, "expected #[from] attribute for variant {name}");
+        assert!(
+            has_from_attribute,
+            "expected #[from] attribute for variant {name}"
+        );
 
         let mut tokens = tokens.peekable();
 
@@ -108,9 +111,7 @@ impl Variant {
             let inner_error: TokenStream = tokens.collect();
             Fields::InnerError(inner_error.to_string())
         } else {
-            panic!(
-                "expected inner error name after #[from] attribute for variant {name}"
-            );
+            panic!("expected inner error name after #[from] attribute for variant {name}");
         }
     }
 

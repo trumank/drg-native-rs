@@ -51,7 +51,6 @@ pub struct Hooks {
     _add_cheats: Detour<5>,
     // _post_actor_construction: Detour<6>,
     // _get_preferred_unique_net_id: Detour<5>,
-
     _on_item_amount_changed: UFunctionHook,
     _get_item_name: UFunctionHook,
     // _on_flare: UFunctionHook,
@@ -71,7 +70,7 @@ impl Hooks {
             _add_cheats: Detour::new(module, &mut crate::ADD_CHEATS, user::my_add_cheats as *const c_void)?,
             // _post_actor_construction: Detour::new(module, &mut crate::POST_ACTOR_CONSTRUCTION, user::my_post_actor_construction as *const c_void)?,
             // _get_preferred_unique_net_id: Detour::new(module, &mut crate::GET_PREFERRED_UNIQUE_NET_ID, user::my_get_preferred_unique_net_id as *const c_void)?,
-            
+
             _on_item_amount_changed: UFunctionHook::new("Function /Script/FSD.AmmoCountWidget.OnItemAmountChanged", ON_ITEM_AMOUNT_CHANGED.as_mut_ptr(), user::my_on_item_amount_changed)?,
             _get_item_name: UFunctionHook::new("Function /Script/FSD.Item.GetItemName", GET_ITEM_NAME.as_mut_ptr(), user::my_get_item_name)?,
             // _on_flare: UFunctionHook::new("Function /Game/UI/MainOnscreenHUD/HUD_Flares.HUD_Flares_C.OnFlareCountChanged", ON_FLARE.as_mut_ptr(), user::my_on_flare)?,
@@ -89,23 +88,34 @@ impl Hooks {
         GRAPPLING_HOOK_GUN = find("Class /Script/FSD.GrapplingHookGun")?.cast();
         OUTLINE_COMPONENT = find("Class /Script/FSD.OutlineComponent")?.cast();
 
-        SERVER_REGISTER_HIT = find("Function /Script/FSD.HitscanComponent.Server_RegisterHit")?.cast();
-        SERVER_REGISTER_HIT_MULTI = find("Function /Script/FSD.MultiHitscanComponent.Server_RegisterHit")?.cast();
-        SERVER_REGISTER_HIT_TERRAIN = find("Function /Script/FSD.HitscanComponent.Server_RegisterHit_Terrain")?.cast();
-        SERVER_REGISTER_HIT_DESTRUCTABLE = find("Function /Script/FSD.HitscanComponent.Server_RegisterHit_Destructable")?.cast();
-        SERVER_REGISTER_RICOCHET_HIT = find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit")?.cast();
-        SERVER_REGISTER_RICOCHET_HIT_TERRAIN = find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit_Terrain")?.cast();
-        SERVER_REGISTER_RICOCHET_HIT_DESTRUCTABLE = find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit_Destructable")?.cast();
+        SERVER_REGISTER_HIT =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterHit")?.cast();
+        SERVER_REGISTER_HIT_MULTI =
+            find("Function /Script/FSD.MultiHitscanComponent.Server_RegisterHit")?.cast();
+        SERVER_REGISTER_HIT_TERRAIN =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterHit_Terrain")?.cast();
+        SERVER_REGISTER_HIT_DESTRUCTABLE =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterHit_Destructable")?.cast();
+        SERVER_REGISTER_RICOCHET_HIT =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit")?.cast();
+        SERVER_REGISTER_RICOCHET_HIT_TERRAIN =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit_Terrain")?
+                .cast();
+        SERVER_REGISTER_RICOCHET_HIT_DESTRUCTABLE =
+            find("Function /Script/FSD.HitscanComponent.Server_RegisterRicochetHit_Destructable")?
+                .cast();
         SERVER_DAMAGE_TARGET = find("Function /Script/FSD.PickaxeItem.Server_DamageTarget")?.cast();
-        SERVER_SET_FALL_VELOCITY = find("Function /Script/FSD.FallingStateComponent.Server_SetFallVelocity")?.cast();
-        SERVER_SET_CONTROLLER_READY = find("Function /Script/FSD.FSDPlayerController.Server_SetControllerReady")?.cast();
+        SERVER_SET_FALL_VELOCITY =
+            find("Function /Script/FSD.FallingStateComponent.Server_SetFallVelocity")?.cast();
+        SERVER_SET_CONTROLLER_READY =
+            find("Function /Script/FSD.FSDPlayerController.Server_SetControllerReady")?.cast();
         Ok(())
     }
 }
 
 impl Drop for Hooks {
     fn drop(&mut self) {
-        unsafe { 
+        unsafe {
             for &function in user::SEEN_FUNCTIONS.iter() {
                 (*function).seen_count = 0;
             }
@@ -119,15 +129,16 @@ struct UFunctionHook {
 }
 
 impl UFunctionHook {
-    pub unsafe fn new(f: &'static str, where_to_place_original: *mut FNativeFuncPtr, hook: FNativeFuncPtr) -> Result<UFunctionHook, Error> {
+    pub unsafe fn new(
+        f: &'static str,
+        where_to_place_original: *mut FNativeFuncPtr,
+        hook: FNativeFuncPtr,
+    ) -> Result<UFunctionHook, Error> {
         let function = find(f)?.cast::<UFunction>();
         let original = (*function).Func;
         *where_to_place_original = original;
         (*function).Func = hook;
-        Ok(UFunctionHook {
-            function,
-            original,
-        })
+        Ok(UFunctionHook { function, original })
     }
 }
 
@@ -140,5 +151,7 @@ impl Drop for UFunctionHook {
 }
 
 unsafe fn find(s: &'static str) -> Result<*mut UObject, Error> {
-    (*common::GUObjectArray).find(s).map_err(|_| Error::FindStatic(s))
+    (*common::GUObjectArray)
+        .find(s)
+        .map_err(|_| Error::FindStatic(s))
 }

@@ -3,18 +3,18 @@ use crate::game::{
 };
 use crate::{sdk_file, sdk_path};
 
-use common::{Hex, List, SplitIterator};
 use common::{
     EClassCastFlags, FName, GUObjectArray, UClass, UFunction, UObject, UPackage, UStruct,
 };
+use common::{Hex, List, SplitIterator};
 
 use core::cell::Cell;
 use core::cmp::Ordering;
 use core::fmt::{self, Display, Formatter};
 use core::str;
+use std::fmt::Write as _;
 use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::fmt::Write as _;
 use std::path::Path;
 
 #[derive(macros::NoPanicErrorDebug)]
@@ -108,7 +108,11 @@ impl Generator {
         let package_name = (*package).short_name();
 
         // Create a Rust module file for this package.
-        let file = File::create(Path::new(sdk_path!()).join("src").join(format!("{}.rs", package_name)))?;
+        let file = File::create(
+            Path::new(sdk_path!())
+                .join("src")
+                .join(format!("{}.rs", package_name)),
+        )?;
 
         // Declare the module in the SDK lib.rs.
         writeln!(&mut self.lib_rs, "pub mod {};", package_name)?;
@@ -340,7 +344,8 @@ impl<W: Write> StructGenerator<W> {
             writeln!(
                 self.out,
                 "    // offset: 0, size: {}\n    base: {},\n",
-                Hex(self.offset), base_name
+                Hex(self.offset),
+                base_name
             )?;
         } else {
             let short_name = (*base_package).short_name();
@@ -379,7 +384,9 @@ impl<W: Write> StructGenerator<W> {
             return Err(Error::ZeroSizedField);
         }
 
-        if (*property).is(EClassCastFlags::CASTCLASS_FBoolProperty) && (*property.cast::<FBoolProperty>()).is_bitfield() {
+        if (*property).is(EClassCastFlags::CASTCLASS_FBoolProperty)
+            && (*property.cast::<FBoolProperty>()).is_bitfield()
+        {
             self.process_bool_property(property.cast())?;
         } else {
             self.add_padding_if_needed(property)?;
@@ -555,7 +562,8 @@ impl<W: Write> StructGenerator<W> {
             Ordering::Greater => writeln!(
                 self.out,
                 "    // WARNING: This structure thinks its size is {}. We think its size is {}.",
-                Hex(struct_size), Hex(self.offset)
+                Hex(struct_size),
+                Hex(self.offset)
             )?,
 
             Ordering::Equal => {}
@@ -662,7 +670,10 @@ impl<W: Write> StructGenerator<W> {
             fn process(&mut self, property: *const FProperty) -> Result<(), Error> {
                 let flags = unsafe { (*property).PropertyFlags };
 
-                let kind = if flags.contains(EPropertyFlags::CPF_ReturnParm) || (flags.contains(EPropertyFlags::CPF_OutParm) && !flags.contains(EPropertyFlags::CPF_ConstParm)) {
+                let kind = if flags.contains(EPropertyFlags::CPF_ReturnParm)
+                    || (flags.contains(EPropertyFlags::CPF_OutParm)
+                        && !flags.contains(EPropertyFlags::CPF_ConstParm))
+                {
                     self.num_outputs += 1;
                     Kind::Output
                 } else if flags.contains(EPropertyFlags::CPF_Parm) {
@@ -865,7 +876,9 @@ impl Display for CleanedName {
             f.write_str("Func_")?;
         }
 
-        for piece in SplitIterator::new(text.as_bytes(), |c| !c.is_ascii_alphanumeric() && c != b'_') {
+        for piece in
+            SplitIterator::new(text.as_bytes(), |c| !c.is_ascii_alphanumeric() && c != b'_')
+        {
             if num_pieces_added > 0 {
                 f.write_char('_')?;
             }

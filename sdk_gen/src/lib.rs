@@ -1,6 +1,6 @@
 use common::{list, win, GUObjectArray, Hex, NamePoolData, Timer};
+use std::io::{BufWriter, Write};
 use windows::Win32::{Foundation::HMODULE, System::LibraryLoader::FreeLibraryAndExitThread};
-use std::io::{BufWriter,Write};
 
 mod game;
 mod generator;

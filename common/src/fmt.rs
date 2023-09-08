@@ -14,7 +14,7 @@ macro_rules! impl_hexable {
             impl Hexable for $t {
                 const BASE: Self = 16;
                 const ZERO: Self = 0;
-            
+
                 fn to_u8(self) -> u8 {
                     self as u8
                 }
@@ -47,7 +47,7 @@ impl<T: Hexable> Display for Hex<T> {
             };
 
             n /= T::BASE;
-            
+
             if n == T::ZERO {
                 break;
             }

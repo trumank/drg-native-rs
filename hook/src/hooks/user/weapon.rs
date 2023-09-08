@@ -1,5 +1,8 @@
 use common::UFunction;
-use sdk::FSD::{AmmoCountWidget, AmmoDrivenWeapon, DoubleDrillItem, HitscanBaseComponent, Item, RandRange, ThrownGrenadeItem};
+use sdk::FSD::{
+    AmmoCountWidget, AmmoDrivenWeapon, DoubleDrillItem, HitscanBaseComponent, Item, RandRange,
+    ThrownGrenadeItem,
+};
 
 pub unsafe fn on_item_amount_changed(widget: *mut AmmoCountWidget) {
     use crate::hooks::*;
@@ -27,7 +30,7 @@ pub unsafe fn on_item_equipped(item: *mut Item) {
     if item.is_null() {
         return;
     }
-    
+
     let item = item.cast::<UObject>();
 
     if (*item).is(AMMO_DRIVEN_WEAPON) {
@@ -36,7 +39,7 @@ pub unsafe fn on_item_equipped(item: *mut Item) {
         no_recoil(weapon);
 
         let fire = (*weapon).WeaponFire.cast::<UObject>();
-        
+
         if !fire.is_null() && (*fire).is(HITSCAN_BASE_COMPONENT) {
             no_spread(fire.cast());
         }
@@ -67,12 +70,12 @@ pub unsafe fn no_recoil(weapon: *mut AmmoDrivenWeapon) {
 
 pub unsafe fn is_server_register_hit(function: *mut UFunction) -> bool {
     use crate::hooks::*;
-    function == SERVER_REGISTER_HIT || 
-    function == SERVER_REGISTER_HIT_MULTI ||
-    function == SERVER_REGISTER_HIT_TERRAIN ||
-    function == SERVER_REGISTER_HIT_DESTRUCTABLE ||
-    function == SERVER_REGISTER_RICOCHET_HIT ||
-    function == SERVER_REGISTER_RICOCHET_HIT_TERRAIN ||
-    function == SERVER_REGISTER_RICOCHET_HIT_DESTRUCTABLE ||
-    function == SERVER_DAMAGE_TARGET
+    function == SERVER_REGISTER_HIT
+        || function == SERVER_REGISTER_HIT_MULTI
+        || function == SERVER_REGISTER_HIT_TERRAIN
+        || function == SERVER_REGISTER_HIT_DESTRUCTABLE
+        || function == SERVER_REGISTER_RICOCHET_HIT
+        || function == SERVER_REGISTER_RICOCHET_HIT_TERRAIN
+        || function == SERVER_REGISTER_RICOCHET_HIT_DESTRUCTABLE
+        || function == SERVER_DAMAGE_TARGET
 }

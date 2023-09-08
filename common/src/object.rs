@@ -43,12 +43,28 @@ pub struct FUObjectArray {
 impl FUObjectArray {
     pub unsafe fn init(module: &win::Module) -> Result<(), Error> {
         // https://github.com/rkr35/drg/issues/3
-        
+
         // 00007FF75CAF6D32 | 48:8B05 F7845C04         | mov rax,qword ptr ds:[7FF7610BF230]     |
         // 00007FF75CAF6D39 | 48:8B0CC8                | mov rcx,qword ptr ds:[rax+rcx*8]        |
         // 00007FF75CAF6D3D | 4C:8D04D1                | lea r8,qword ptr ds:[rcx+rdx*8]         |
 
-        const GU_OBJECT_ARRAY_PATTERN: [Option<u8>; 15] = [Some(0x48), Some(0x8B), Some(0x05), None, None, None, None, Some(0x48), Some(0x8B), Some(0x0C), Some(0xC8), Some(0x4C), Some(0x8D), Some(0x04), Some(0xD1)];
+        const GU_OBJECT_ARRAY_PATTERN: [Option<u8>; 15] = [
+            Some(0x48),
+            Some(0x8B),
+            Some(0x05),
+            None,
+            None,
+            None,
+            None,
+            Some(0x48),
+            Some(0x8B),
+            Some(0x0C),
+            Some(0xC8),
+            Some(0x4C),
+            Some(0x8D),
+            Some(0x04),
+            Some(0xD1),
+        ];
 
         let mov_rax: *const u8 = module
             .find(&GU_OBJECT_ARRAY_PATTERN)
@@ -58,7 +74,10 @@ impl FUObjectArray {
         let instruction_after_mov = mov_immediate.add(4);
         let mov_immediate = mov_immediate.cast::<u32>().read_unaligned();
 
-        GUObjectArray = instruction_after_mov.add(mov_immediate as usize).sub(0x10).cast();
+        GUObjectArray = instruction_after_mov
+            .add(mov_immediate as usize)
+            .sub(0x10)
+            .cast();
 
         Ok(())
     }
@@ -303,7 +322,6 @@ impl UObject {
         // 00007FF6389DDFDD | C3                       | ret                                     |
         const PROCESS_EVENT_VTABLE_INDEX: usize = 68;
 
-
         type ProcessEvent = unsafe extern "C" fn(*mut UObject, *mut UFunction, *mut c_void);
         let process_event = mem::transmute::<*const c_void, ProcessEvent>(
             *(*this).vtable.add(PROCESS_EVENT_VTABLE_INDEX),
@@ -410,8 +428,8 @@ impl UClass {
 
 #[repr(C)]
 pub struct FOutputDevice {
-	bSuppressEventTag: bool,
-	bAutoEmitLineTerminator: bool,
+    bSuppressEventTag: bool,
+    bAutoEmitLineTerminator: bool,
 }
 
 #[repr(C)]
@@ -419,19 +437,19 @@ pub struct FFrame {
     base: FOutputDevice,
 
     Node: *mut UFunction,
-	Object: *mut UObject,
-	
-    Code: *mut u8,
-	pub Locals: *mut u8,
+    Object: *mut UObject,
 
-	MostRecentProperty: *mut c_void,
-	MostRecentPropertyAddress: *mut c_void,
+    Code: *mut u8,
+    pub Locals: *mut u8,
+
+    MostRecentProperty: *mut c_void,
+    MostRecentPropertyAddress: *mut c_void,
     FlowStack: crate::TArray<u32>,
-	PreviousFrame: *mut c_void,
-	OutParms: *mut c_void,
-	PropertyChainForCompiledIn: *mut c_void,
-	CurrentNativeFunction: *mut c_void,
-	bArrayContextFailed: bool,
+    PreviousFrame: *mut c_void,
+    OutParms: *mut c_void,
+    PropertyChainForCompiledIn: *mut c_void,
+    CurrentNativeFunction: *mut c_void,
+    bArrayContextFailed: bool,
 }
 
 pub type FNativeFuncPtr =
@@ -539,123 +557,123 @@ impl Display for EFunctionFlags {
         if flags & Self::FUNC_Final.0 == Self::FUNC_Final.0 {
             write!(f, "FUNC_Final, ")?;
         }
-        
+
         if flags & Self::FUNC_RequiredAPI.0 == Self::FUNC_RequiredAPI.0 {
             write!(f, "FUNC_RequiredAPI, ")?;
         }
-        
+
         if flags & Self::FUNC_BlueprintAuthorityOnly.0 == Self::FUNC_BlueprintAuthorityOnly.0 {
             write!(f, "FUNC_BlueprintAuthorityOnly, ")?;
         }
-        
+
         if flags & Self::FUNC_BlueprintCosmetic.0 == Self::FUNC_BlueprintCosmetic.0 {
             write!(f, "FUNC_BlueprintCosmetic, ")?;
         }
-        
+
         if flags & Self::FUNC_Net.0 == Self::FUNC_Net.0 {
             write!(f, "FUNC_Net, ")?;
         }
-        
+
         if flags & Self::FUNC_NetReliable.0 == Self::FUNC_NetReliable.0 {
             write!(f, "FUNC_NetReliable, ")?;
         }
-        
+
         if flags & Self::FUNC_NetRequest.0 == Self::FUNC_NetRequest.0 {
             write!(f, "FUNC_NetRequest, ")?;
         }
-        
+
         if flags & Self::FUNC_Exec.0 == Self::FUNC_Exec.0 {
             write!(f, "FUNC_Exec, ")?;
         }
-        
+
         if flags & Self::FUNC_Native.0 == Self::FUNC_Native.0 {
             write!(f, "FUNC_Native, ")?;
         }
-        
+
         if flags & Self::FUNC_Event.0 == Self::FUNC_Event.0 {
             write!(f, "FUNC_Event, ")?;
         }
-        
+
         if flags & Self::FUNC_NetResponse.0 == Self::FUNC_NetResponse.0 {
             write!(f, "FUNC_NetResponse, ")?;
         }
-        
+
         if flags & Self::FUNC_Static.0 == Self::FUNC_Static.0 {
             write!(f, "FUNC_Static, ")?;
         }
-        
+
         if flags & Self::FUNC_NetMulticast.0 == Self::FUNC_NetMulticast.0 {
             write!(f, "FUNC_NetMulticast, ")?;
         }
-        
+
         if flags & Self::FUNC_UbergraphFunction.0 == Self::FUNC_UbergraphFunction.0 {
             write!(f, "FUNC_UbergraphFunction, ")?;
         }
-        
+
         if flags & Self::FUNC_MulticastDelegate.0 == Self::FUNC_MulticastDelegate.0 {
             write!(f, "FUNC_MulticastDelegate, ")?;
         }
-        
+
         if flags & Self::FUNC_Public.0 == Self::FUNC_Public.0 {
             write!(f, "FUNC_Public, ")?;
         }
-        
+
         if flags & Self::FUNC_Private.0 == Self::FUNC_Private.0 {
             write!(f, "FUNC_Private, ")?;
         }
-        
+
         if flags & Self::FUNC_Protected.0 == Self::FUNC_Protected.0 {
             write!(f, "FUNC_Protected, ")?;
         }
-        
+
         if flags & Self::FUNC_Delegate.0 == Self::FUNC_Delegate.0 {
             write!(f, "FUNC_Delegate, ")?;
         }
-        
+
         if flags & Self::FUNC_NetServer.0 == Self::FUNC_NetServer.0 {
             write!(f, "FUNC_NetServer, ")?;
         }
-        
+
         if flags & Self::FUNC_HasOutParms.0 == Self::FUNC_HasOutParms.0 {
             write!(f, "FUNC_HasOutParms, ")?;
         }
-        
+
         if flags & Self::FUNC_HasDefaults.0 == Self::FUNC_HasDefaults.0 {
             write!(f, "FUNC_HasDefaults, ")?;
         }
-        
+
         if flags & Self::FUNC_NetClient.0 == Self::FUNC_NetClient.0 {
             write!(f, "FUNC_NetClient, ")?;
         }
-        
+
         if flags & Self::FUNC_DLLImport.0 == Self::FUNC_DLLImport.0 {
             write!(f, "FUNC_DLLImport, ")?;
         }
-        
+
         if flags & Self::FUNC_BlueprintCallable.0 == Self::FUNC_BlueprintCallable.0 {
             write!(f, "FUNC_BlueprintCallable, ")?;
         }
-        
+
         if flags & Self::FUNC_BlueprintEvent.0 == Self::FUNC_BlueprintEvent.0 {
             write!(f, "FUNC_BlueprintEvent, ")?;
         }
-        
+
         if flags & Self::FUNC_BlueprintPure.0 == Self::FUNC_BlueprintPure.0 {
             write!(f, "FUNC_BlueprintPure, ")?;
         }
-        
+
         if flags & Self::FUNC_EditorOnly.0 == Self::FUNC_EditorOnly.0 {
             write!(f, "FUNC_EditorOnly, ")?;
         }
-        
+
         if flags & Self::FUNC_Const.0 == Self::FUNC_Const.0 {
             write!(f, "FUNC_Const, ")?;
         }
-        
+
         if flags & Self::FUNC_NetValidate.0 == Self::FUNC_NetValidate.0 {
             write!(f, "FUNC_NetValidate, ")?;
         }
-        
+
         Ok(())
     }
 }

@@ -19,10 +19,6 @@ impl<A: Display> Timer<A> {
     pub fn stop(self) {
         let current_tick = Instant::now();
         let elapsed = current_tick.duration_since(self.start_tick);
-        crate::log!(
-            "END: {} ({:?} elapsed)",
-            self.action,
-            elapsed
-        );
+        crate::log!("END: {} ({:?} elapsed)", self.action, elapsed);
     }
 }

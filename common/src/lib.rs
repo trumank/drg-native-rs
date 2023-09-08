@@ -1,4 +1,3 @@
-//#![no_std]
 #![allow(non_snake_case, non_upper_case_globals, non_camel_case_types)]
 #![allow(clippy::missing_safety_doc)]
 
@@ -117,14 +116,17 @@ impl FWeakObjectPtr {
             ptr::null_mut()
         } else {
             let object_item = (*GUObjectArray).index_to_object(self.ObjectIndex);
-    
-            if object_item.is_null() || (*object_item).SerialNumber != self.ObjectSerialNumber || !(*object_item).is_valid() {
+
+            if object_item.is_null()
+                || (*object_item).SerialNumber != self.ObjectSerialNumber
+                || !(*object_item).is_valid()
+            {
                 ptr::null_mut()
             } else {
                 (*object_item).Object
             }
         }
-    } 
+    }
 }
 
 #[repr(C)]

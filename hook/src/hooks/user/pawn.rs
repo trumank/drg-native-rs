@@ -1,5 +1,5 @@
-use common::UObject;
 use crate::hooks::OUTLINE_COMPONENT;
+use common::UObject;
 use sdk::Engine::Pawn;
 use sdk::FSD::OutlineComponent;
 

@@ -63,23 +63,19 @@ impl<T, const N: usize> List<T, N> {
 
     pub fn get_mut(&mut self, index: usize) -> Result<&mut T, Error> {
         if index < self.len {
-            unsafe {
-                Ok(self.get_unchecked_mut(index))
-            }
+            unsafe { Ok(self.get_unchecked_mut(index)) }
         } else {
             Err(Error::BadGetIndex(index, self.len))
         }
-    } 
+    }
 
     pub fn get(&self, index: usize) -> Result<&T, Error> {
         if index < self.len {
-            unsafe {
-                Ok(self.get_unchecked(index))
-            }
+            unsafe { Ok(self.get_unchecked(index)) }
         } else {
             Err(Error::BadGetIndex(index, self.len))
         }
-    } 
+    }
 
     pub unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
         self.data.get_unchecked_mut(index).assume_init_mut()

@@ -3,7 +3,6 @@ enum Error {
     UnknownViewModeIndex(i32),
 }
 
-
 #[repr(i32)]
 enum ViewModeIndex {
     Unlit = 2,
@@ -24,7 +23,11 @@ impl TryFrom<i32> for ViewModeIndex {
 
 unsafe fn view_mode_ptr() -> *mut i32 {
     const OFFSET_VIEW_MODE_INDEX: usize = 0xB0;
-    (*crate::GEngine).GameViewport.cast::<u8>().add(OFFSET_VIEW_MODE_INDEX).cast::<i32>()
+    (*crate::GEngine)
+        .GameViewport
+        .cast::<u8>()
+        .add(OFFSET_VIEW_MODE_INDEX)
+        .cast::<i32>()
 }
 
 unsafe fn set_view_mode_index(mode: ViewModeIndex) {
