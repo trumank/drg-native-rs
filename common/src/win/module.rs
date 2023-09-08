@@ -1,6 +1,8 @@
+use windows::Win32::System::LibraryLoader::GetModuleHandleA;
+
 use crate::util;
 
-use core::{ptr, slice};
+use core::slice;
 
 #[derive(macros::NoPanicErrorDebug)]
 pub enum Error {
@@ -21,13 +23,9 @@ impl Module {
         const PAGE: usize = 0x1000;
         const PE_HEADER_SIZE: usize = PAGE; // overkill for our search.
 
-        let base = super::GetModuleHandleA(ptr::null());
+        let base = GetModuleHandleA(None).map_err(|_| Error::GetModuleHandle)?;
 
-        if base.is_null() {
-            return Err(Error::GetModuleHandle);
-        }
-
-        let pe_header: &[u8] = slice::from_raw_parts(base.cast(), PE_HEADER_SIZE);
+        let pe_header: &[u8] = slice::from_raw_parts(base.0 as *const u8, PE_HEADER_SIZE);
 
         let section_header: *const SectionHeader = pe_header
             .windows(SECTION.len())
@@ -36,7 +34,7 @@ impl Module {
             .ok_or(Error::FindTextSection)?;
 
         Ok(Self {
-            start: base as usize + (*section_header).virtual_address as usize,
+            start: base.0 as usize + (*section_header).virtual_address as usize,
             size: util::align((*section_header).size_of_raw_data as usize, PAGE),
         })
     }

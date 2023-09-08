@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 macros = { path = "../macros" }
+rand = "0.8.5"
+windows.workspace= true

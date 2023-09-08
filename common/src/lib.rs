@@ -1,23 +1,6 @@
-#![no_std]
+//#![no_std]
 #![allow(non_snake_case, non_upper_case_globals, non_camel_case_types)]
 #![allow(clippy::missing_safety_doc)]
-
-#[cfg(not(debug_assertions))]
-#[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
-    extern "Rust" {
-        #[link_name = "\n\nDetected possible panic in your code. Remove all panics.\n"]
-        fn f() -> !;
-    }
-
-    unsafe { f() }
-}
-
-#[cfg(debug_assertions)]
-#[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
-    loop {}
-}
 
 use core::ffi::c_void;
 use core::marker::PhantomData;

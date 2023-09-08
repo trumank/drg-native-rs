@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {{
+        /*
         use core::fmt::Write;
 
         struct Stdout;
@@ -21,6 +22,8 @@ macro_rules! log {
         }
 
         let _ = writeln!(&mut Stdout, $($arg)*);
+        */
+        println!($($arg)*);
     }}
 }
 

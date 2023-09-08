@@ -1,22 +1,7 @@
-#![no_std]
+use common::{list, win, GUObjectArray, Hex, NamePoolData, Timer};
+use windows::Win32::{Foundation::HMODULE, System::LibraryLoader::FreeLibraryAndExitThread};
+use std::io::{BufWriter,Write};
 
-// // https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features?view=msvc-160
-// #[link(name = "ucrt")]
-// extern {}
-
-#[link(name = "msvcrt")]
-extern "C" {}
-
-#[link(name = "vcruntime")]
-extern "C" {}
-
-use common::{list, timer, win, GUObjectArray, Hex, NamePoolData, Timer};
-use core::ffi::c_void;
-use core::fmt::{self, Write};
-use core::str;
-
-mod buf_writer;
-use buf_writer::BufWriter;
 mod game;
 mod generator;
 use generator::Generator;
@@ -25,32 +10,26 @@ mod util;
 #[derive(macros::NoPanicErrorDebug)]
 enum Error {
     Game(#[from] game::Error),
-    File(#[from] win::file::Error),
     Module(#[from] win::module::Error),
-    Fmt(#[from] fmt::Error),
     List(#[from] list::Error),
     Generator(#[from] generator::Error),
     Common(#[from] common::Error),
+    Io(#[from] std::io::Error),
 }
 
 #[no_mangle]
-unsafe extern "system" fn _DllMainCRTStartup(dll: *mut c_void, reason: u32, _: *mut c_void) -> i32 {
+#[allow(non_snake_case, unused_variables)]
+unsafe extern "system" fn DllMain(dll: HMODULE, reason: u32, _: *mut ()) -> i32 {
     win::dll_main(dll, reason, on_attach, on_detach)
 }
 
-unsafe extern "system" fn on_attach(dll: *mut c_void) -> u32 {
-    win::AllocConsole();
-
-    timer::initialize_ticks_per_second();
-
+unsafe extern "system" fn on_attach(dll: HMODULE) -> u32 {
     if let Err(e) = run() {
         common::log!("error: {:?}", e);
         common::idle();
     }
 
-    win::FreeConsole();
-    win::FreeLibraryAndExitThread(dll, 0);
-    0
+    FreeLibraryAndExitThread(dll, 0);
 }
 
 unsafe fn on_detach() {}
@@ -76,7 +55,7 @@ unsafe fn dump_globals() -> Result<(), Error> {
 }
 
 unsafe fn dump_names() -> Result<(), Error> {
-    let mut file = BufWriter::new(win::File::new(sdk_file!("global_names.txt"))?);
+    let mut file = BufWriter::new(std::fs::File::create(sdk_file!("global_names.txt"))?);
 
     for (index, name) in (*NamePoolData).iter() {
         let text = (*name).text();
@@ -87,7 +66,7 @@ unsafe fn dump_names() -> Result<(), Error> {
 }
 
 unsafe fn dump_objects() -> Result<(), Error> {
-    let mut file = BufWriter::new(win::File::new(sdk_file!("global_objects.txt"))?);
+    let mut file = BufWriter::new(std::fs::File::create(sdk_file!("global_objects.txt"))?);
 
     for object in (*GUObjectArray).iter().filter(|o| !o.is_null()) {
         writeln!(

@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 common = { path = "../common" }
 macros = { path = "../macros" }
 sdk = { path = "../sdk" }
+windows.workspace = true

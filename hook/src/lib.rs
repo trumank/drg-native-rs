@@ -1,19 +1,21 @@
-#![no_std]
+//#![no_std]
 
 // // https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features?view=msvc-160
 // #[link(name = "ucrt")]
 // extern {}
 
-#[link(name = "msvcrt")]
-extern "C" {}
+//#[link(name = "msvcrt")]
+//extern "C" {}
 
-#[link(name = "vcruntime")]
-extern "C" {}
+//#[link(name = "vcruntime")]
+//extern "C" {}
 
 use common::{self, win};
 use core::ffi::c_void;
 use core::ptr;
 use sdk::Engine::Engine;
+use windows::Win32::Foundation::HMODULE;
+use windows::Win32::System::LibraryLoader::FreeLibraryAndExitThread;
 
 mod hooks;
 use hooks::Hooks;
@@ -41,21 +43,17 @@ static mut POST_ACTOR_CONSTRUCTION: *mut c_void = ptr::null_mut();
 static mut GET_PREFERRED_UNIQUE_NET_ID: *mut c_void = ptr::null_mut();
 
 #[no_mangle]
-unsafe extern "system" fn _DllMainCRTStartup(dll: *mut c_void, reason: u32, _: *mut c_void) -> i32 {
+unsafe extern "system" fn DllMain(dll: HMODULE, reason: u32, _: *mut ()) -> i32 {
     win::dll_main(dll, reason, on_attach, on_detach)
 }
 
-unsafe extern "system" fn on_attach(dll: *mut c_void) -> u32 {
-    win::AllocConsole();
-
+unsafe extern "system" fn on_attach(dll: HMODULE) -> u32 {
     if let Err(e) = run() {
         common::log!("error: {:?}", e);
         common::idle();
     }
 
-    win::FreeConsole();
-    win::FreeLibraryAndExitThread(dll, 0);
-    0
+    FreeLibraryAndExitThread(dll, 0);
 }
 
 unsafe fn on_detach() {}

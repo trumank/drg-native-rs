@@ -77,7 +77,7 @@ impl<const JMP_LEN: usize> Drop for Detour<JMP_LEN> {
         unsafe {
             ManuallyDrop::drop(&mut self.jmp);
             // Before we destroy the code cave, give the CPU time to exit the cave.
-            win::Sleep(10);
+            std::thread::sleep(std::time::Duration::from_millis(10));
             ManuallyDrop::drop(&mut self.code_cave);
         }
     }

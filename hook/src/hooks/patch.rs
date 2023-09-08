@@ -1,5 +1,7 @@
-use common::win;
 use core::mem;
+use windows::Win32::System::Memory::{
+    VirtualProtect, PAGE_EXECUTE_READWRITE, PAGE_PROTECTION_FLAGS,
+};
 
 pub struct Patch<T: Copy> {
     address: *mut T,
@@ -16,16 +18,15 @@ impl<T: Copy> Patch<T> {
     }
 
     unsafe fn write(address: *mut T, new_value: T) {
-        const PAGE_EXECUTE_READWRITE: u32 = 0x40;
-        let mut old_protection = 0;
-        win::VirtualProtect(
+        let mut old_protection: PAGE_PROTECTION_FLAGS = Default::default();
+        VirtualProtect(
             address.cast(),
             mem::size_of::<T>(),
             PAGE_EXECUTE_READWRITE,
             &mut old_protection,
         );
         *address = new_value;
-        win::VirtualProtect(
+        VirtualProtect(
             address.cast(),
             mem::size_of::<T>(),
             old_protection,

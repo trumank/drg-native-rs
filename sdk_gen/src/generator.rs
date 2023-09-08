@@ -1,10 +1,8 @@
-use crate::buf_writer::BufWriter;
 use crate::game::{
     self, EPropertyFlags, FBoolProperty, FProperty, PropertyDisplayable, TPair, UEnum,
 };
 use crate::{sdk_file, sdk_path};
 
-use common::win::file::{self, File};
 use common::{Hex, List, SplitIterator};
 use common::{
     EClassCastFlags, FName, GUObjectArray, UClass, UFunction, UObject, UPackage, UStruct,
@@ -12,14 +10,18 @@ use common::{
 
 use core::cell::Cell;
 use core::cmp::Ordering;
-use core::fmt::{self, Display, Formatter, Write};
+use core::fmt::{self, Display, Formatter};
 use core::str;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::fmt::Write as _;
+use std::path::Path;
 
 #[derive(macros::NoPanicErrorDebug)]
 pub enum Error {
     Game(#[from] game::Error),
-    File(#[from] file::Error),
     Fmt(#[from] fmt::Error),
+    Io(#[from] std::io::Error),
 
     ZeroSizedField,
     BadBitfieldSize(u8),
@@ -52,10 +54,10 @@ pub struct Generator {
 
 impl Generator {
     pub unsafe fn new() -> Result<Generator, Error> {
-        let mut lib_rs = File::new(sdk_file!("src/lib.rs"))?;
-        lib_rs.write_str(
-            "\
-            #![no_std]\n\
+        println!("SDK output: {}", sdk_path!());
+        std::fs::create_dir(Path::new(sdk_path!()).join("src")).ok();
+        let mut lib_rs = File::create(sdk_file!("src/lib.rs"))?;
+        write!(lib_rs, "\
             #![allow(dead_code, non_camel_case_types, non_snake_case, non_upper_case_globals)]\n\
             #![allow(clippy::missing_safety_doc, clippy::too_many_arguments, clippy::type_complexity)]\n\
             pub mod blueprint_generated;\n",
@@ -64,7 +66,7 @@ impl Generator {
         Ok(Generator {
             lib_rs,
             packages: List::new(),
-            blueprint_generated_package_file: BufWriter::new(File::new(sdk_file!(
+            blueprint_generated_package_file: BufWriter::new(File::create(sdk_file!(
                 "src/blueprint_generated.rs"
             ))?),
         })
@@ -106,15 +108,7 @@ impl Generator {
         let package_name = (*package).short_name();
 
         // Create a Rust module file for this package.
-        let file = {
-            let mut path = List::<u8, 260>::new();
-            write!(
-                &mut path,
-                concat!(sdk_path!(), "/src/{}.rs\0"),
-                package_name
-            )?;
-            File::new(path)?
-        };
+        let file = File::create(Path::new(sdk_path!()).join("src").join(format!("{}.rs", package_name)))?;
 
         // Declare the module in the SDK lib.rs.
         writeln!(&mut self.lib_rs, "pub mod {};", package_name)?;
@@ -342,7 +336,7 @@ impl<W: Write> StructGenerator<W> {
 
         if is_base_blueprint_generated || base_package == self.package {
             write!(self.inherited_type, "{}", base_name)?;
-            
+
             writeln!(
                 self.out,
                 "    // offset: 0, size: {}\n    base: {},\n",

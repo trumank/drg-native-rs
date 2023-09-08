@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! sdk_file {
     ($filename:literal) => {{
-        concat!(sdk_path!(), '\\', $filename, '\0')
+        concat!(sdk_path!(), '/', $filename)
     }};
 }
 
